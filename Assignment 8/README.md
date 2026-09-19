@@ -1,16 +1,28 @@
-# Assignment 8: Implementing To-Do List APIs with Node.js, Express.js, MongoDB & React Frontend Integration
+# Assignment 8: To-Do List Application (Express.js, Mongoose ODM & React UI)
 
-## 📌 Overview
-Full stack implementation of the To-Do List application connecting a **React.js frontend UI** to a **Node.js, Express.js & MongoDB backend architecture**.
+A full-stack To-Do List web application built with **Express.js**, **MongoDB (Mongoose ODM)**, **Axios**, and **React.js**.
 
 ---
 
-## 🚀 How to Run the Application
+## 🚀 Key Features
 
-Start the Express & Node server:
+1. **Express.js REST APIs**: Configured with middleware (`cors`, `express.json()`, `express.static`).
+2. **Mongoose ODM**: Active MongoDB schema (`Task.js`) and connection manager (`config/db.js`).
+3. **Controller-Service-Routes Architecture**: Decoupled architecture (`routes/`, `controllers/`, `services/`, `models/`).
+4. **Axios Integration**: Client-side API calls handled via Axios.
+5. **Interactive Edit Modal**: UI modal to edit task title, description, priority, category, and due date.
+6. **UI Notification Banners**: Error and success banners rendering directly in the React interface without window alerts.
+
+---
+
+## ⚡ Quick Start
 
 ```bash
-node server.js
+# 1. Install dependencies
+npm install
+
+# 2. Start Express server
+npm start
 ```
 
-Open your browser at **[http://localhost:3000](http://localhost:3000)** to interact with the live To-Do application!
+Open `http://localhost:3000/` in your browser.

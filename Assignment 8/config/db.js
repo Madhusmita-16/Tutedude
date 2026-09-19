@@ -1,15 +1,24 @@
 /**
- * Assignment 8: MongoDB Connection Configuration
+ * Assignment 8: MongoDB Connection Configuration using Mongoose ODM
  * 
- * Handles database connection using Mongoose URI string
- * and provides a fallback mock data store if MongoDB URI is not set.
+ * Configures active connection to MongoDB instance using Mongoose ODM.
  */
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/tutedude_todo_db";
+const mongoose = require('mongoose');
 
-function connectDB() {
-    console.log(`[DATABASE] Connecting to MongoDB instance at: ${MONGO_URI}`);
-    console.log(`[DATABASE] Database status: Active (with in-memory fallback adapter)`);
-}
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/tutedude_todo_db";
 
-module.exports = { connectDB, MONGO_URI };
+const connectDB = async () => {
+    try {
+        mongoose.set('strictQuery', false);
+        const conn = await mongoose.connect(MONGO_URI, {
+            serverSelectionTimeoutMS: 3000
+        });
+        console.log(`[DATABASE] MongoDB Connected Successfully: ${conn.connection.host}`);
+    } catch (err) {
+        console.log(`[DATABASE] MongoDB Connection Status: Offline / Connecting (${err.message})`);
+        console.log(`[DATABASE] URI Configured: ${MONGO_URI}`);
+    }
+};
+
+module.exports = connectDB;

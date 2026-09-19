@@ -1,28 +1,52 @@
 /**
- * Assignment 8: Task Data Model / Schema Definition
+ * Assignment 8: Task Mongoose Model
  * 
- * Defines the Task object structure:
- * - id: String (Unique UUID)
- * - title: String (Required)
- * - description: String
- * - priority: Enum ['low', 'medium', 'high']
+ * Defines Mongoose Schema for To-Do Task collection:
+ * - title: String (Required, trimmed)
+ * - description: String (Trimmed)
+ * - priority: String (Enum: ['low', 'medium', 'high'])
+ * - category: String (Enum: ['Work', 'Personal', 'Shopping', 'Study', 'General'])
  * - completed: Boolean (Default: false)
  * - dueDate: Date
- * - createdAt: Date
- * - updatedAt: Date
+ * - timestamps: createdAt & updatedAt
  */
 
-class TaskModel {
-    constructor({ title, description = '', priority = 'medium', completed = false, dueDate = null }) {
-        this.id = 'task-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 7);
-        this.title = title.trim();
-        this.description = description.trim();
-        this.priority = ['low', 'medium', 'high'].includes(priority) ? priority : 'medium';
-        this.completed = Boolean(completed);
-        this.dueDate = dueDate || null;
-        this.createdAt = new Date().toISOString();
-        this.updatedAt = new Date().toISOString();
-    }
-}
+const mongoose = require('mongoose');
 
-module.exports = TaskModel;
+const TaskSchema = new mongoose.Schema(
+    {
+        title: {
+            type: String,
+            required: [true, 'Task title is required'],
+            trim: true
+        },
+        description: {
+            type: String,
+            default: '',
+            trim: true
+        },
+        priority: {
+            type: String,
+            enum: ['low', 'medium', 'high'],
+            default: 'medium'
+        },
+        category: {
+            type: String,
+            enum: ['Work', 'Personal', 'Shopping', 'Study', 'General'],
+            default: 'General'
+        },
+        completed: {
+            type: Boolean,
+            default: false
+        },
+        dueDate: {
+            type: Date,
+            default: null
+        }
+    },
+    {
+        timestamps: true
+    }
+);
+
+module.exports = mongoose.model('Task', TaskSchema);

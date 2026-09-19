@@ -3,167 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment 8: Full Stack To-Do App (Express + MongoDB + React Integration)</title>
+    <title>Assignment 8: To-Do List Application (Express.js & MongoDB)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
-    
-    <!-- React & ReactDOM CDN -->
+
+    <!-- React, ReactDOM, Babel & Axios CDN -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
 
     <div id="root"></div>
 
-    <!-- React App Script -->
+    <!-- React Frontend Code using Axios -->
     <script type="text/babel">
         const { useState, useEffect, useCallback } = React;
 
         function App() {
+            // Task List & Filter State
             const [tasks, setTasks] = useState([]);
-            const [loading, setLoading] = useState(true);
+            const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
+            const [selectedCategory, setSelectedCategory] = useState('All');
             const [searchQuery, setSearchQuery] = useState('');
-            const [statusFilter, setStatusFilter] = useState('all');
-            const [priorityFilter, setPriorityFilter] = useState('');
 
-            // Form state
+            // Create Task Form State
             const [title, setTitle] = useState('');
             const [description, setDescription] = useState('');
             const [priority, setPriority] = useState('medium');
+            const [category, setCategory] = useState('General');
+            const [dueDate, setDueDate] = useState('');
 
-            // 1. Fetch Tasks API Call (GET /api/tasks or /api/tasks/search)
+            // Edit Task Modal State (Requirement 6)
+            const [editingTask, setEditingTask] = useState(null);
+            const [editTitle, setEditTitle] = useState('');
+            const [editDescription, setEditDescription] = useState('');
+            const [editPriority, setEditPriority] = useState('medium');
+            const [editCategory, setEditCategory] = useState('General');
+            const [editDueDate, setEditDueDate] = useState('');
+
+            // UI Notification Banner State (Requirement 7 - UI error messages, no window.alert)
+            const [errorMessage, setErrorMessage] = useState('');
+            const [successMessage, setSuccessMessage] = useState('');
+
+            const showToast = (msg, isError = false) => {
+                if (isError) {
+                    setErrorMessage(msg);
+                    setTimeout(() => setErrorMessage(''), 4000);
+                } else {
+                    setSuccessMessage(msg);
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                }
+            };
+
+            // Fetch Tasks using Axios GET (Requirement 5)
             const fetchTasks = useCallback(async () => {
-                setLoading(true);
                 try {
-                    let url = '/api/tasks';
-                    if (searchQuery.trim()) {
-                        url = `/api/tasks/search?q=${encodeURIComponent(searchQuery.trim())}`;
-                    } else {
-                        const params = new URLSearchParams();
-                        if (statusFilter !== 'all') params.append('status', statusFilter);
-                        if (priorityFilter) params.append('priority', priorityFilter);
-                        if (params.toString()) url += `?${params.toString()}`;
-                    }
+                    const params = {};
+                    if (searchQuery) params.search = searchQuery;
+                    if (selectedCategory !== 'All') params.category = selectedCategory;
+                    if (filter === 'active') params.completed = 'false';
+                    if (filter === 'completed') params.completed = 'true';
 
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    if (data.success) {
-                        setTasks(data.data || []);
+                    const response = await axios.get('/api/tasks', { params });
+                    if (response.data && response.data.success) {
+                        setTasks(response.data.data);
                     }
                 } catch (err) {
-                    console.error("Failed to fetch tasks from API", err);
-                } finally {
-                    setLoading(false);
+                    showToast(err.response?.data?.error || 'Failed to load tasks from server', true);
                 }
-            }, [searchQuery, statusFilter, priorityFilter]);
+            }, [searchQuery, selectedCategory, filter]);
 
             useEffect(() => {
                 fetchTasks();
             }, [fetchTasks]);
 
-            // 2. Create Task API Call (POST /api/tasks)
-            const handleCreateTask = async (e) => {
+            // Add New Task using Axios POST
+            const handleAddTask = async (e) => {
                 e.preventDefault();
-                if (!title.trim()) return;
+                if (!title.trim()) {
+                    showToast('Please enter a task title', true);
+                    return;
+                }
 
                 try {
-                    const res = await fetch('/api/tasks', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, description, priority })
+                    const response = await axios.post('/api/tasks', {
+                        title,
+                        description,
+                        priority,
+                        category,
+                        dueDate: dueDate || null
                     });
-                    const data = await res.json();
-                    if (data.success) {
+
+                    if (response.data && response.data.success) {
+                        showToast('Task created successfully!');
                         setTitle('');
                         setDescription('');
                         setPriority('medium');
+                        setCategory('General');
+                        setDueDate('');
                         fetchTasks();
                     }
                 } catch (err) {
-                    alert('Error creating task');
+                    showToast(err.response?.data?.error || 'Failed to add task', true);
                 }
             };
 
-            // 3. Toggle Completion API Call (PATCH /api/tasks/:id)
-            const handleToggleComplete = async (id, currentStatus) => {
+            // Toggle Task Status using Axios PATCH
+            const handleToggleTask = async (id) => {
                 try {
-                    const res = await fetch(`/api/tasks/${id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ completed: !currentStatus })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
+                    const response = await axios.patch(`/api/tasks/${id}/toggle`);
+                    if (response.data && response.data.success) {
+                        showToast(response.data.message);
                         fetchTasks();
                     }
                 } catch (err) {
-                    alert('Error updating task status');
+                    showToast('Failed to toggle task status', true);
                 }
             };
 
-            // 4. Delete Task API Call (DELETE /api/tasks/:id)
+            // Delete Task using Axios DELETE
             const handleDeleteTask = async (id) => {
-                if (!confirm('Are you sure you want to delete this task?')) return;
                 try {
-                    const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-                    const data = await res.json();
-                    if (data.success) {
+                    const response = await axios.delete(`/api/tasks/${id}`);
+                    if (response.data && response.data.success) {
+                        showToast('Task deleted successfully');
                         fetchTasks();
                     }
                 } catch (err) {
-                    alert('Error deleting task');
+                    showToast('Failed to delete task', true);
                 }
             };
 
-            // 5. Clear Completed Tasks (DELETE /api/tasks/completed)
-            const handleClearCompleted = async () => {
-                if (!confirm('Clear all completed tasks?')) return;
+            // Open Edit Modal (Requirement 6)
+            const handleOpenEditModal = (task) => {
+                setEditingTask(task);
+                setEditTitle(task.title);
+                setEditDescription(task.description || '');
+                setEditPriority(task.priority || 'medium');
+                setEditCategory(task.category || 'General');
+                setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
+            };
+
+            // Close Edit Modal
+            const handleCloseEditModal = () => {
+                setEditingTask(null);
+            };
+
+            // Save Edited Task using Axios PUT (Requirement 6)
+            const handleSaveEdit = async (e) => {
+                e.preventDefault();
+                if (!editTitle.trim()) {
+                    showToast('Task title cannot be empty', true);
+                    return;
+                }
+
                 try {
-                    const res = await fetch('/api/tasks/completed', { method: 'DELETE' });
-                    const data = await res.json();
-                    if (data.success) {
+                    const response = await axios.put(`/api/tasks/${editingTask._id}`, {
+                        title: editTitle,
+                        description: editDescription,
+                        priority: editPriority,
+                        category: editCategory,
+                        completed: editingTask.completed,
+                        dueDate: editDueDate || null
+                    });
+
+                    if (response.data && response.data.success) {
+                        showToast('Task updated successfully!');
+                        setEditingTask(null);
                         fetchTasks();
                     }
                 } catch (err) {
-                    alert('Error clearing completed tasks');
+                    showToast(err.response?.data?.error || 'Failed to update task', true);
                 }
             };
 
             return (
                 <div>
-                    {/* Header */}
+                    {/* Header Bar */}
                     <header className="navbar">
                         <a href="/" className="nav-brand">
-                            ⚡ <span>Full Stack To-Do Application</span>
+                            📝 <span>TaskFlow Pro</span>
                         </a>
-                        <span className="badge" style={{ marginBottom: 0, background: '#f0fdf4', color: '#16a34a', borderColor: '#bbf7d0' }}>
-                            Assignment 8: React + Express + MongoDB
-                        </span>
+                        <div style={{ fontSize: '0.88rem', color: '#64748b', fontWeight: '600' }}>
+                            Express.js & MongoDB Edition
+                        </div>
                     </header>
 
                     <main className="container">
+                        {/* Hero Header */}
                         <section className="hero">
-                            <span className="badge">🚀 Node.js, Express.js, MongoDB & React Integration</span>
-                            <h1>Full Stack <span>To-Do Application</span></h1>
-                            <p>Real-time React hooks state integration with Express.js Controllers, Mongoose Models, and RESTful API endpoints.</p>
+                            <span className="badge">⚡ Assignment 8 Task Application</span>
+                            <h1>Streamline Your <span>Daily Tasks</span></h1>
+                            <p>Powered by Express.js REST APIs, Mongoose ODM, MongoDB, and Axios Client Integration.</p>
                         </section>
+
+                        {/* UI Notification Error & Success Banners (Requirement 7) */}
+                        {errorMessage && (
+                            <div className="ui-banner error">
+                                <span>⚠️ {errorMessage}</span>
+                                <button onClick={() => setErrorMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c' }}>✕</button>
+                            </div>
+                        )}
+                        {successMessage && (
+                            <div className="ui-banner success">
+                                <span>✅ {successMessage}</span>
+                                <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d' }}>✕</button>
+                            </div>
+                        )}
 
                         <div className="app-grid">
                             
-                            {/* Add Task Panel */}
+                            {/* Left Panel: Create Task Form */}
                             <aside className="panel">
-                                <h2 className="panel-title">➕ Create New Task</h2>
-                                <form onSubmit={handleCreateTask}>
+                                <h2 className="panel-title">📌 Create New Task</h2>
+                                <form onSubmit={handleAddTask}>
                                     <div className="form-group">
-                                        <label htmlFor="title">Task Title *</label>
+                                        <label htmlFor="taskTitle">Task Title *</label>
                                         <input 
                                             type="text" 
-                                            id="title" 
-                                            className="form-input" 
-                                            placeholder="e.g. Configure Mongoose Task Model" 
+                                            id="taskTitle"
+                                            className="form-input"
+                                            placeholder="What needs to be done?"
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             required
@@ -171,137 +235,263 @@
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="description">Description</label>
+                                        <label htmlFor="taskDesc">Description</label>
                                         <textarea 
-                                            id="description" 
-                                            className="form-input" 
-                                            style={{ height: '80px' }} 
-                                            placeholder="Task instructions and details..."
+                                            id="taskDesc"
+                                            className="form-input"
+                                            rows="3"
+                                            placeholder="Add extra context or sub-tasks..."
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
-                                        ></textarea>
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <div className="form-group">
+                                            <label htmlFor="taskPriority">Priority</label>
+                                            <select 
+                                                id="taskPriority"
+                                                className="form-input"
+                                                value={priority}
+                                                onChange={(e) => setPriority(e.target.value)}
+                                            >
+                                                <option value="low">🟢 Low</option>
+                                                <option value="medium">🟡 Medium</option>
+                                                <option value="high">🔴 High</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label htmlFor="taskCategory">Category</label>
+                                            <select 
+                                                id="taskCategory"
+                                                className="form-input"
+                                                value={category}
+                                                onChange={(e) => setCategory(e.target.value)}
+                                            >
+                                                <option value="General">General</option>
+                                                <option value="Work">Work</option>
+                                                <option value="Personal">Personal</option>
+                                                <option value="Shopping">Shopping</option>
+                                                <option value="Study">Study</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="priority">Priority</label>
-                                        <select 
-                                            id="priority" 
+                                        <label htmlFor="taskDueDate">Due Date</label>
+                                        <input 
+                                            type="date"
+                                            id="taskDueDate"
                                             className="form-input"
-                                            value={priority}
-                                            onChange={(e) => setPriority(e.target.value)}
-                                        >
-                                            <option value="high">High Priority</option>
-                                            <option value="medium">Medium Priority</option>
-                                            <option value="low">Low Priority</option>
-                                        </select>
+                                            value={dueDate}
+                                            onChange={(e) => setDueDate(e.target.value)}
+                                        />
                                     </div>
 
                                     <button type="submit" className="btn btn-primary">
-                                        🚀 Add Task (POST /api/tasks)
+                                        ➕ Add Task to List
                                     </button>
                                 </form>
                             </aside>
 
-                            {/* Task List Panel */}
+                            {/* Right Panel: Tasks List, Filters, & Controls */}
                             <section className="panel">
-                                
-                                {/* Live Search Input */}
+                                {/* Search Bar */}
                                 <div className="search-bar">
                                     <span className="search-icon">🔍</span>
                                     <input 
                                         type="text" 
-                                        className="search-input" 
-                                        placeholder="Live search tasks by title or description..." 
+                                        className="search-input"
+                                        placeholder="Search tasks by title..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
                                 </div>
 
-                                {/* Filter Controls */}
+                                {/* Filter Tabs */}
                                 <div className="filter-bar">
                                     <div className="filter-tabs">
-                                        <button 
-                                            className={`filter-tab ${statusFilter === 'all' ? 'active' : ''}`}
-                                            onClick={() => setStatusFilter('all')}
-                                        >
-                                            All
-                                        </button>
-                                        <button 
-                                            className={`filter-tab ${statusFilter === 'active' ? 'active' : ''}`}
-                                            onClick={() => setStatusFilter('active')}
-                                        >
-                                            Active
-                                        </button>
-                                        <button 
-                                            className={`filter-tab ${statusFilter === 'completed' ? 'active' : ''}`}
-                                            onClick={() => setStatusFilter('completed')}
-                                        >
-                                            Completed
-                                        </button>
+                                        {['all', 'active', 'completed'].map(f => (
+                                            <button 
+                                                key={f}
+                                                className={`filter-tab ${filter === f ? 'active' : ''}`}
+                                                onClick={() => setFilter(f)}
+                                            >
+                                                {f.charAt(0).toUpperCase() + f.slice(1)}
+                                            </button>
+                                        ))}
                                     </div>
 
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                        <select 
-                                            className="form-input" 
-                                            style={{ padding: '6px 10px', fontSize: '0.85rem', width: 'auto' }}
-                                            value={priorityFilter}
-                                            onChange={(e) => setPriorityFilter(e.target.value)}
-                                        >
-                                            <option value="">All Priorities</option>
-                                            <option value="high">High</option>
-                                            <option value="medium">Medium</option>
-                                            <option value="low">Low</option>
-                                        </select>
-
-                                        <button 
-                                            className="btn btn-danger" 
-                                            style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                                            onClick={handleClearCompleted}
-                                        >
-                                            🗑️ Clear Completed
-                                        </button>
-                                    </div>
+                                    <select 
+                                        className="form-input" 
+                                        style={{ width: 'auto', padding: '6px 12px' }}
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                    >
+                                        <option value="All">All Categories</option>
+                                        <option value="General">General</option>
+                                        <option value="Work">Work</option>
+                                        <option value="Personal">Personal</option>
+                                        <option value="Shopping">Shopping</option>
+                                        <option value="Study">Study</option>
+                                    </select>
                                 </div>
 
-                                {/* Task Items Grid */}
-                                {loading ? (
-                                    <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading tasks from Express API...</div>
-                                ) : tasks.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>No tasks found. Create a new task!</div>
-                                ) : (
-                                    <div className="task-list">
-                                        {tasks.map(task => (
-                                            <div className={`task-item ${task.completed ? 'completed' : ''}`} key={task.id}>
+                                {/* Tasks List */}
+                                <div className="task-list">
+                                    {tasks.length === 0 ? (
+                                        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+                                            <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📋</div>
+                                            <p style={{ fontWeight: '600' }}>No tasks found in database.</p>
+                                            <p style={{ fontSize: '0.85rem' }}>Create a task using the form on the left!</p>
+                                        </div>
+                                    ) : (
+                                        tasks.map(task => (
+                                            <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
                                                 <input 
                                                     type="checkbox" 
-                                                    className="task-checkbox" 
-                                                    checked={task.completed} 
-                                                    onChange={() => handleToggleComplete(task.id, task.completed)}
+                                                    className="task-checkbox"
+                                                    checked={task.completed}
+                                                    onChange={() => handleToggleTask(task._id)}
                                                 />
+
                                                 <div className="task-content">
                                                     <div className="task-header">
                                                         <span className="task-title">{task.title}</span>
-                                                        <span className={`priority-badge priority-${task.priority}`}>{task.priority}</span>
+                                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                                            {/* Edit Button (Requirement 6) */}
+                                                            <button 
+                                                                className="btn-icon"
+                                                                title="Edit Task"
+                                                                onClick={() => handleOpenEditModal(task)}
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                            {/* Delete Button */}
+                                                            <button 
+                                                                className="btn-icon"
+                                                                title="Delete Task"
+                                                                onClick={() => handleDeleteTask(task._id)}
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    {task.description && <div className="task-desc">{task.description}</div>}
+
+                                                    {task.description && (
+                                                        <p className="task-desc">{task.description}</p>
+                                                    )}
+
                                                     <div className="task-meta">
-                                                        <span style={{ fontFamily: 'monospace', color: '#94a3b8' }}>ID: {task.id}</span>
-                                                        <span>Created: {new Date(task.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                                        <span className={`priority-badge priority-${task.priority}`}>
+                                                            {task.priority}
+                                                        </span>
+                                                        <span className="category-tag">
+                                                            {task.category || 'General'}
+                                                        </span>
+                                                        {task.dueDate && (
+                                                            <span style={{ color: '#64748b' }}>
+                                                                📅 {new Date(task.dueDate).toLocaleDateString()}
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                </div>
-                                                <div>
-                                                    <button className="btn-icon" onClick={() => handleDeleteTask(task.id)} title="Delete Task">🗑️</button>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                        ))
+                                    )}
+                                </div>
                             </section>
                         </div>
                     </main>
 
+                    {/* Edit Task Modal Overlay (Requirement 6) */}
+                    {editingTask && (
+                        <div className="modal-overlay" onClick={handleCloseEditModal}>
+                            <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h3>✏️ Edit Task</h3>
+                                    <button onClick={handleCloseEditModal} className="btn-icon">✕</button>
+                                </div>
+                                <form onSubmit={handleSaveEdit}>
+                                    <div className="modal-body">
+                                        <div className="form-group">
+                                            <label>Task Title *</label>
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                value={editTitle} 
+                                                onChange={(e) => setEditTitle(e.target.value)} 
+                                                required 
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Description</label>
+                                            <textarea 
+                                                className="form-input" 
+                                                rows="3" 
+                                                value={editDescription} 
+                                                onChange={(e) => setEditDescription(e.target.value)} 
+                                            />
+                                        </div>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                            <div className="form-group">
+                                                <label>Priority</label>
+                                                <select 
+                                                    className="form-input" 
+                                                    value={editPriority} 
+                                                    onChange={(e) => setEditPriority(e.target.value)}
+                                                >
+                                                    <option value="low">🟢 Low</option>
+                                                    <option value="medium">🟡 Medium</option>
+                                                    <option value="high">🔴 High</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label>Category</label>
+                                                <select 
+                                                    className="form-input" 
+                                                    value={editCategory} 
+                                                    onChange={(e) => setEditCategory(e.target.value)}
+                                                >
+                                                    <option value="General">General</option>
+                                                    <option value="Work">Work</option>
+                                                    <option value="Personal">Personal</option>
+                                                    <option value="Shopping">Shopping</option>
+                                                    <option value="Study">Study</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Due Date</label>
+                                            <input 
+                                                type="date" 
+                                                className="form-input" 
+                                                value={editDueDate} 
+                                                onChange={(e) => setEditDueDate(e.target.value)} 
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" onClick={handleCloseEditModal}>
+                                            Cancel
+                                        </button>
+                                        <button type="submit" className="btn btn-primary" style={{ width: 'auto' }}>
+                                            💾 Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
                     <footer>
-                        <p>© 2026 To-Do Manager | Assignment 8 Full Stack Application (Express + MongoDB + React)</p>
+                        <p>© 2026 TaskFlow Pro | Assignment 8 (Express.js, Mongoose ODM, MongoDB, Axios & React)</p>
                     </footer>
                 </div>
             );
