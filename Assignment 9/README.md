@@ -1,6 +1,6 @@
-# Visitor Pass Management System (MERN Stack) - Assignment 9
+# Visitor Pass Management System - Assignment 9
 
-A complete full-stack **MERN (MongoDB, Express, React, Node.js)** Visitor Pass Management System featuring pre-registration, digital pass generation with dynamic QR codes, role-based access control (RBAC), gatekeeper scanner verification, real-time audit logging, and analytics.
+A complete full-stack Visitor Pass Management System featuring pre-registration, digital pass generation with dynamic QR codes, role-based access control (RBAC), gatekeeper scanner verification, real-time audit logging, and analytics.
 
 ---
 

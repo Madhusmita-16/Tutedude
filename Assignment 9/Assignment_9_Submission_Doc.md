@@ -1,4 +1,4 @@
-# Assignment 9: Build a Visitor Pass Management System (MERN Stack)
+# Assignment 9: Build a Visitor Pass Management System
 **Tutedude Full-Stack Web Development Course**  
 **Student Name:** Madhusmita  
 **Date:** September 19, 2026  
@@ -8,9 +8,9 @@
 ---
 
 ## 📌 Executive Summary
-This document provides a comprehensive report for **Assignment 9: Build a Visitor Pass Management System (MERN Stack)**. The application is designed to modernize and digitize physical visitor logbooks for corporate offices, gated communities, and educational institutions.
+This document provides a comprehensive report for **Assignment 9: Build a Visitor Pass Management System**. The application is designed to modernize and digitize physical visitor logbooks for corporate offices, gated communities, and educational institutions.
 
-The system utilizes the full **MERN stack (MongoDB, Express.js, React.js, Node.js)** featuring:
+The system utilizes a full-stack architecture (MongoDB, Express.js, React.js, Node.js) featuring:
 1. **Pre-Registration & Self Check-In**: Visitors or hosts can schedule visits in advance.
 2. **Digital Pass & Dynamic QR Code Generation**: Instant generation of pass badges with embedded encrypted verification payloads.
 3. **Role-Based Access Control (RBAC)**: JWT authentication tailored for 4 roles: `Admin`, `Security Gatekeeper`, `Host Staff`, and `Visitor`.
@@ -113,7 +113,7 @@ cd "f:\works\Tutedude\Assignment 9"
 # Install dependencies (Express, Mongoose, Jsonwebtoken, QRcode, Cors)
 npm install
 
-# Start the MERN Server
+# Start the Application Server
 npm start
 ```
 
