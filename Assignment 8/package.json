@@ -1,0 +1,21 @@
+{
+  "name": "assignment-8-express-mongodb-todo",
+  "version": "1.0.0",
+  "description": "Assignment 8: Implementing To-Do List APIs with Node.js, Express.js, MongoDB and React Frontend Integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "mongodb",
+    "mongoose",
+    "react",
+    "todo-app",
+    "rest-api"
+  ],
+  "author": "Madhusmita",
+  "license": "ISC"
+}
