@@ -1,0 +1,22 @@
+{
+  "name": "assignment-9-visitor-pass-mern",
+  "version": "1.0.0",
+  "description": "Assignment 9: Visitor Pass Management System (MERN Stack with JWT, QR Code, and Role-Based Access Control)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "mern-stack",
+    "nodejs",
+    "express",
+    "mongodb",
+    "react",
+    "visitor-management",
+    "qr-code",
+    "jwt-auth"
+  ],
+  "author": "Madhusmita",
+  "license": "ISC"
+}

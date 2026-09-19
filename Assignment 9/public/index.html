@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment 9: Visitor Pass Management System (MERN Stack)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- React & ReactDOM & QRCode Generator CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <!-- React App Script -->
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+
+        function App() {
+            const [role, setRole] = useState('Admin'); // ['Admin', 'Security', 'Host', 'Visitor']
+            const [analytics, setAnalytics] = useState({ totalVisitors: 0, checkedInCount: 0, checkedOutCount: 0, activePassesCount: 0 });
+            const [visitors, setVisitors] = useState([]);
+            const [checkLogs, setCheckLogs] = useState([]);
+            const [searchQuery, setSearchQuery] = useState('');
+
+            // Pre-Registration Form State
+            const [name, setName] = useState('');
+            const [email, setEmail] = useState('');
+            const [phone, setPhone] = useState('');
+            const [organization, setOrganization] = useState('');
+            const [hostEmployee, setHostEmployee] = useState('');
+            const [purpose, setPurpose] = useState('Business Meeting');
+
+            // Issued Pass Modal/Card State
+            const [latestPass, setLatestPass] = useState(null);
+
+            // Scanner Input State
+            const [scanPassCode, setScanPassCode] = useState('');
+
+            // Fetch Analytics & Visitor Data
+            const loadData = useCallback(async () => {
+                try {
+                    // Analytics API
+                    const resAnalytic = await fetch('/api/analytics');
+                    const dataAnalytic = await resAnalytic.json();
+                    if (dataAnalytic.success) setAnalytics(dataAnalytic.metrics);
+
+                    // Visitors API
+                    const urlVisitors = searchQuery ? `/api/visitors?query=${encodeURIComponent(searchQuery)}` : '/api/visitors';
+                    const resVis = await fetch(urlVisitors);
+                    const dataVis = await resVis.json();
+                    if (dataVis.success) setVisitors(dataVis.data);
+
+                    // Logs API
+                    const resLogs = await fetch('/api/checklogs');
+                    const dataLogs = await resLogs.json();
+                    if (dataLogs.success) setCheckLogs(dataLogs.data);
+                } catch (err) {
+                    console.error("API error", err);
+                }
+            }, [searchQuery]);
+
+            useEffect(() => {
+                loadData();
+            }, [loadData]);
+
+            // Register Visitor & Generate Pass (POST /api/visitors/register)
+            const handleRegister = async (e) => {
+                e.preventDefault();
+                if (!name || !email || !phone) return;
+
+                try {
+                    const res = await fetch('/api/visitors/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, phone, organization, hostEmployee, purpose })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setLatestPass(data.data.pass);
+                        setName('');
+                        setEmail('');
+                        setPhone('');
+                        setOrganization('');
+                        setHostEmployee('');
+                        loadData();
+                    } else {
+                        alert(data.error);
+                    }
+                } catch (err) {
+                    alert('Registration failed');
+                }
+            };
+
+            // Check-In Scan (POST /api/passes/checkin)
+            const handleCheckIn = async () => {
+                if (!scanPassCode) return;
+                try {
+                    const res = await fetch('/api/passes/checkin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ passCode: scanPassCode })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert(`✅ ${data.message}`);
+                        setScanPassCode('');
+                        loadData();
+                    } else {
+                        alert(`⚠️ ${data.error}`);
+                    }
+                } catch (err) {
+                    alert('Check-in failed');
+                }
+            };
+
+            // Check-Out Scan (POST /api/passes/checkout)
+            const handleCheckOut = async () => {
+                if (!scanPassCode) return;
+                try {
+                    const res = await fetch('/api/passes/checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ passCode: scanPassCode })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert(`🚪 ${data.message}`);
+                        setScanPassCode('');
+                        loadData();
+                    } else {
+                        alert(`⚠️ ${data.error}`);
+                    }
+                } catch (err) {
+                    alert('Check-out failed');
+                }
+            };
+
+            return (
+                <div>
+                    {/* Header Bar with Role Switcher */}
+                    <header className="navbar">
+                        <a href="/" className="nav-brand">
+                            🎟️ <span>VisitorPass MERN</span>
+                        </a>
+
+                        <div className="role-switcher">
+                            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#94a3b8', paddingLeft: '8px' }}>ACTIVE ROLE:</span>
+                            {['Admin', 'Security', 'Host', 'Visitor'].map(r => (
+                                <button 
+                                    key={r} 
+                                    className={`role-btn ${role === r ? 'active' : ''}`}
+                                    onClick={() => setRole(r)}
+                                >
+                                    {r}
+                                </button>
+                            ))}
+                        </div>
+                    </header>
+
+                    <main className="container">
+                        {/* Hero Section */}
+                        <section className="hero">
+                            <span className="badge">🏢 Digital Visitor Pass Management System</span>
+                            <h1>Digital Visitor <span>Pass System</span></h1>
+                            <p>MERN stack application with pre-registration, QR code verification, role-based access, and real-time check-in/out logs.</p>
+                        </section>
+
+                        {/* Analytics Cards */}
+                        <section className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-icon">👥</div>
+                                <div>
+                                    <div className="stat-val">{analytics.totalVisitors}</div>
+                                    <div className="stat-lbl">Total Visitors</div>
+                                </div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-icon" style={{ background: '#dcfce7', color: '#16a34a' }}>🟢</div>
+                                <div>
+                                    <div className="stat-val">{analytics.checkedInCount}</div>
+                                    <div className="stat-lbl">Currently Checked-In</div>
+                                </div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>🎫</div>
+                                <div>
+                                    <div className="stat-val">{analytics.activePassesCount}</div>
+                                    <div className="stat-lbl">Active Passes</div>
+                                </div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-icon" style={{ background: '#f3f4f6', color: '#4b5563' }}>🚪</div>
+                                <div>
+                                    <div className="stat-val">{analytics.checkedOutCount}</div>
+                                    <div className="stat-lbl">Checked-Out Today</div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* App Interactive Grid */}
+                        <div className="app-grid">
+                            
+                            {/* Left Panel: Register Visitor & Pass Issuance */}
+                            <aside className="panel">
+                                <h2 className="panel-title">📝 Issue Visitor Pass</h2>
+                                <form onSubmit={handleRegister}>
+                                    <div className="form-group">
+                                        <label htmlFor="vName">Visitor Full Name *</label>
+                                        <input 
+                                            type="text" 
+                                            id="vName" 
+                                            className="form-input" 
+                                            placeholder="e.g. John Doe" 
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            required 
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="vEmail">Email Address *</label>
+                                        <input 
+                                            type="email" 
+                                            id="vEmail" 
+                                            className="form-input" 
+                                            placeholder="e.g. john@company.com" 
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required 
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="vPhone">Phone Number *</label>
+                                        <input 
+                                            type="tel" 
+                                            id="vPhone" 
+                                            className="form-input" 
+                                            placeholder="+1 555-0199" 
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            required 
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="vOrg">Organization / Company</label>
+                                        <input 
+                                            type="text" 
+                                            id="vOrg" 
+                                            className="form-input" 
+                                            placeholder="e.g. Acme Corp" 
+                                            value={organization}
+                                            onChange={(e) => setOrganization(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="vHost">Host Employee Name</label>
+                                        <input 
+                                            type="text" 
+                                            id="vHost" 
+                                            className="form-input" 
+                                            placeholder="e.g. Sarah Connor" 
+                                            value={hostEmployee}
+                                            onChange={(e) => setHostEmployee(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <button type="submit" className="btn btn-primary">
+                                        🎟️ Generate Digital Pass & QR Code
+                                    </button>
+                                </form>
+
+                                {/* Generated Digital Pass Badge Display */}
+                                {latestPass && (
+                                    <div className="pass-badge-card">
+                                        <span className="badge" style={{ background: '#dcfce7', color: '#15803d' }}>DIGITAL PASS ISSUED</span>
+                                        <div className="pass-code-title">{latestPass.passCode}</div>
+                                        <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0f172a' }}>{latestPass.visitorName}</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '8px' }}>Host: {latestPass.hostEmployee}</div>
+                                        
+                                        {/* Visual QR Code Container */}
+                                        <div className="qr-box">
+                                            <img 
+                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(latestPass.passCode)}`} 
+                                                alt="QR Code"
+                                                style={{ width: '120px', height: '120px' }}
+                                            />
+                                        </div>
+                                        <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Valid for Today: {latestPass.validDate}</div>
+                                    </div>
+                                )}
+                            </aside>
+
+                            {/* Right Panel: Gate Scanner & Check Logs */}
+                            <section className="panel">
+                                
+                                {/* Gate Scanner Controls */}
+                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '20px', borderRadius: '16px', marginBottom: '24px' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        📷 Security / Gate Pass Scanner
+                                    </h3>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="Enter or scan Pass Code (e.g. PASS-123456)..."
+                                            value={scanPassCode}
+                                            onChange={(e) => setScanPassCode(e.target.value)}
+                                        />
+                                        <button className="btn btn-success" onClick={handleCheckIn}>
+                                            🟢 Check-In
+                                        </button>
+                                        <button className="btn btn-danger" onClick={handleCheckOut}>
+                                            🚪 Check-Out
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Visitor Directory Search */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                    <h3 style={{ fontSize: '1.15rem', fontWeight: '700' }}>📋 Visitor Roster & Status</h3>
+                                    <input 
+                                        type="text" 
+                                        className="form-input" 
+                                        style={{ width: '240px', padding: '6px 12px', fontSize: '0.88rem' }}
+                                        placeholder="Search visitor or org..." 
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+
+                                {/* Visitors Table */}
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Visitor Name</th>
+                                            <th>Organization</th>
+                                            <th>Host Employee</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {visitors.map(v => (
+                                            <tr key={v.id}>
+                                                <td>
+                                                    <div style={{ fontWeight: '700' }}>{v.name}</div>
+                                                    <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{v.email}</div>
+                                                </td>
+                                                <td>{v.organization}</td>
+                                                <td>{v.hostEmployee}</td>
+                                                <td>
+                                                    <span className={`status-tag ${v.status === 'Checked-In' ? 'status-in' : v.status === 'Checked-Out' ? 'status-out' : 'status-approved'}`}>
+                                                        {v.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                {/* Audit Logs Section */}
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginTop: '32px', marginBottom: '12px' }}>
+                                    📜 Audit Check-In / Check-Out Log History
+                                </h3>
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Pass Code</th>
+                                            <th>Visitor Name</th>
+                                            <th>Action</th>
+                                            <th>Timestamp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {checkLogs.map(log => (
+                                            <tr key={log.logId}>
+                                                <td style={{ fontFamily: 'monospace', fontWeight: '700', color: '#2563eb' }}>{log.passCode}</td>
+                                                <td>{log.visitorName}</td>
+                                                <td>
+                                                    <span className={`status-tag ${log.action === 'CHECK-IN' ? 'status-in' : 'status-out'}`}>
+                                                        {log.action}
+                                                    </span>
+                                                </td>
+                                                <td style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                                                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </section>
+                        </div>
+                    </main>
+
+                    <footer>
+                        <p>© 2026 VisitorPass MERN System | Assignment 9 (MongoDB, Express, React, Node.js)</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
