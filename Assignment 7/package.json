@@ -1,0 +1,19 @@
+{
+  "name": "assignment-7-todo-api-planning",
+  "version": "1.0.0",
+  "description": "Assignment 7: Identifying and Planning RESTful APIs for To-Do List App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "nodejs",
+    "rest-api",
+    "todo-app",
+    "crud",
+    "express",
+    "api-planning"
+  ],
+  "author": "Madhusmita",
+  "license": "ISC"
+}
