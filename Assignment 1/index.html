@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laundry Mart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --accent: #06b6d4;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Full Width Header with Logo & Brand Name */
+        header {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+            color: #ffffff;
+            padding: 35px 20px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .brand-header-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-header-logo img {
+            height: 50px;
+            width: auto;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 4px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Content Body - One Section After Another */
+        .content-body {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 50px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 45px;
+            flex: 1;
+        }
+
+        section {
+            background: #ffffff;
+            padding: 35px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid #e2e8f0;
+        }
+
+        section h2 {
+            font-size: 1.6rem;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 14px;
+            font-weight: 600;
+        }
+
+        /* 2. About Section */
+        .about-section p {
+            color: var(--text-main);
+            font-size: 1.08rem;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        /* 3. Image Section */
+        .image-section {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .image-section img {
+            width: 100%;
+            max-width: 900px;
+            height: 420px;
+            border-radius: var(--radius);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .image-section img:hover {
+            transform: scale(1.01);
+        }
+
+        /* 4. Services Section */
+        .services-section ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            padding-left: 0;
+        }
+
+        .services-section li {
+            background: #f8fafc;
+            padding: 16px 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .services-section li::before {
+            content: "✓";
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* 5. Price List Section */
+        .price-section table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .price-section table, 
+        .price-section th, 
+        .price-section td {
+            border: 1px solid var(--border-color);
+        }
+
+        .price-section th, 
+        .price-section td {
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 1.05rem;
+        }
+
+        .price-section th {
+            background-color: #eff6ff;
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .price-section tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* 6. Book Now Section */
+        .book-section form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #334155;
+        }
+
+        .form-group input {
+            padding: 14px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        }
+
+        .form-group button,
+        .form-group input[type="submit"] {
+            background: var(--primary);
+            color: #ffffff;
+            padding: 16px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* 7. Footer Section */
+        footer {
+            background: #0f172a;
+            color: #cbd5e1;
+            text-align: center;
+            padding: 25px 20px;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        footer p {
+            margin: 0;
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 1. Header Section with Logo and Laundry Mart Brand Name -->
+        <header>
+            <div class="brand-header-logo">
+                <img src="logo.png" alt="Laundry Mart Logo">
+                <h1>Welcome to Laundry Mart</h1>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <!-- 2. About Section -->
+            <section class="about-section">
+                <h2>About Us</h2>
+                <p>
+                    Welcome to Laundry Mart, your one-stop solution for all your laundry needs. Our dedicated team ensures top-notch service, providing a hassle-free and efficient laundry experience. With a focus on quality and customer satisfaction, we take care of your garments as if they were our own. Whether it is daily wear, delicate fabrics, or bulky bedding, we handle every item with utmost care and attention. Enjoy fresh, clean, and neatly folded clothes delivered right to your doorstep with our fast and reliable service.
+                </p>
+            </section>
+
+            <!-- 3. Image Section -->
+            <section class="image-section">
+                <img src="laundry.png" alt="Laundry Service" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=800&q=80';">
+            </section>
+
+            <!-- 4. Services Section -->
+            <section class="services-section">
+                <h2>Our Services</h2>
+                <ul>
+                    <li>Washing and Drying</li>
+                    <li>Ironing and Folding</li>
+                    <li>Dry Cleaning</li>
+                    <li>Stain Removal</li>
+                    <li>Express Services</li>
+                    <li>Special Garment Care</li>
+                    <li>And more...</li>
+                </ul>
+            </section>
+
+            <!-- 5. Price List Section -->
+            <section class="price-section">
+                <h2>Price List</h2>
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Washing and Drying</td>
+                            <td>Rs 10.00</td>
+                        </tr>
+                        <tr>
+                            <td>Ironing and Folding</td>
+                            <td>Rs 5.00</td>
+                        </tr>
+                        <tr>
+                            <td>Dry Cleaning</td>
+                            <td>Rs 15.00</td>
+                        </tr>
+                        <tr>
+                            <td>Stain Removal</td>
+                            <td>Rs 8.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 6. Book Now Section -->
+            <section class="book-section">
+                <h2>Book Now</h2>
+                <form action="#" method="post" onsubmit="event.preventDefault(); alert('Booking submitted successfully!');">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email address">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone:</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Submit">
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- 7. Footer Section -->
+        <footer>
+            <p>Contact us at: info@laundrymart.com</p>
+        </footer>
+    </div>
+
+</body>
+</html>
