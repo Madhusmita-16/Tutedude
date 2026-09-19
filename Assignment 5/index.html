@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment 5: React Custom Hooks (useFetch)</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React & React DOM via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Babel for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-main: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-heading: #f8fafc;
+            --text-body: #94a3b8;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', 'Poppins', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-heading);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border: 1px solid rgba(129, 140, 248, 0.3);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-body);
+            font-size: 1.05rem;
+        }
+
+        /* Controls / API Switcher */
+        .controls-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .endpoint-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .endpoint-selector label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-body);
+        }
+
+        select {
+            background: #0f172a;
+            color: #ffffff;
+            border: 1px solid var(--card-border);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-refetch {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            padding: 10px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-refetch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Loading Spinner State */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 20px;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-body);
+        }
+
+        /* Error State Box */
+        .error-card {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 550px;
+            margin: 60px auto;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .error-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fca5a5;
+            margin-bottom: 8px;
+        }
+
+        .error-desc {
+            color: #f87171;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        /* Data Cards Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .product-img-wrapper {
+            width: 100%;
+            height: 220px;
+            background: #0f172a;
+            overflow: hidden;
+        }
+
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.05);
+        }
+
+        .product-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            justify-content: space-between;
+        }
+
+        .product-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-desc {
+            font-size: 0.88rem;
+            color: var(--text-body);
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .product-price {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #818cf8;
+        }
+
+        .category-tag {
+            background: rgba(255, 255, 255, 0.06);
+            color: #cbd5e1;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <!-- React App & useFetch Custom Hook Script -->
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // Custom Hook: useFetch
+        function useFetch(url) {
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            const fetchData = useCallback(async () => {
+                if (!url) return;
+                setLoading(true);
+                setError(null);
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+                    }
+                    const result = await response.json();
+                    setData(result);
+                } catch (err) {
+                    setError(err.message || 'Error occurred while fetching data.');
+                } finally {
+                    setLoading(false);
+                }
+            }, [url]);
+
+            useEffect(() => {
+                fetchData();
+            }, [fetchData]);
+
+            return { data, loading, error, refetch: fetchData };
+        }
+
+        // Main React App Component
+        function App() {
+            const [selectedApi, setSelectedApi] = useState('/api/products');
+
+            // Using the custom useFetch hook
+            const { data, loading, error, refetch } = useFetch(selectedApi);
+
+            // Extract items array based on API format
+            let items = [];
+            if (data) {
+                if (Array.isArray(data)) {
+                    items = data;
+                } else if (data.products && Array.isArray(data.products)) {
+                    items = data.products;
+                }
+            }
+
+            return (
+                <div className="container">
+                        <header>
+                            <span className="badge">Assignment 5: React Custom Hooks</span>
+                            <h1>React useFetch Custom Hook</h1>
+                            <p>Simplifying asynchronous data fetching in React with custom hooks</p>
+                        </header>
+
+                        {/* API Selector & Refetch Bar */}
+                        <div className="controls-card">
+                            <div className="endpoint-selector">
+                                <label htmlFor="apiSelect">Select API Endpoint:</label>
+                                <select 
+                                    id="apiSelect" 
+                                    value={selectedApi} 
+                                    onChange={(e) => setSelectedApi(e.target.value)}
+                                >
+                                    <option value="/api/products">Local Mock Products API (Reliable Offline / Fast)</option>
+                                    <option value="https://dummyjson.com/products?limit=12">DummyJSON Products API</option>
+                                    <option value="https://api.escuelajs.co/api/v1/products?offset=0&limit=12">EscuelaJS Products API</option>
+                                    <option value="https://jsonplaceholder.typicode.com/photos?_limit=12">JSONPlaceholder Photos API</option>
+                                    <option value="https://invalid-api-endpoint.example.com/data">Simulate Fetch Error State</option>
+                                </select>
+                            </div>
+                            <button className="btn-refetch" onClick={refetch}>
+                                🔄 Refetch Data
+                            </button>
+                        </div>
+
+                        {/* Loading State */}
+                        {loading && (
+                            <div className="loading-container">
+                                <div className="spinner"></div>
+                                <div className="loading-text">Fetching data from API...</div>
+                            </div>
+                        )}
+
+                        {/* Error State */}
+                        {!loading && error && (
+                            <div className="error-card">
+                                <div className="error-icon">⚠️</div>
+                                <div className="error-title">Fetch Error</div>
+                                <div className="error-desc">{error}</div>
+                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                    <button className="btn-refetch" onClick={refetch}>Try Again</button>
+                                    <button 
+                                        className="btn-refetch" 
+                                        style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+                                        onClick={() => setSelectedApi('/api/products')}
+                                    >
+                                        Use Local Mock API
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Success Data Grid */}
+                        {!loading && !error && items.length > 0 && (
+                            <div className="products-grid">
+                                {items.map((item, index) => {
+                                    const title = item.title || item.name || `Item #${index + 1}`;
+                                    const price = item.price ? `$${item.price}` : `$${(index + 1) * 15}`;
+                                    const description = item.description || `High quality item fetched from API endpoint.`;
+                                    const category = item.category?.name || item.category || 'General';
+                                    const image = item.thumbnail || (item.images && item.images[0]) || item.url || 'https://via.placeholder.com/300x200?text=No+Image';
+
+                                    return (
+                                        <div className="product-card" key={item.id || index}>
+                                            <div className="product-img-wrapper">
+                                                <img 
+                                                    src={image} 
+                                                    alt={title} 
+                                                    className="product-img" 
+                                                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80'; }}
+                                                />
+                                            </div>
+                                            <div className="product-info">
+                                                <div>
+                                                    <div className="product-title">{title}</div>
+                                                    <div className="product-desc">{description}</div>
+                                                </div>
+                                                <div className="product-footer">
+                                                    <div className="product-price">{price}</div>
+                                                    <div className="category-tag">{category}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
