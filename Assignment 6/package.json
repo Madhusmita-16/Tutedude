@@ -1,0 +1,17 @@
+{
+  "name": "assignment-6-node-server",
+  "version": "1.0.0",
+  "description": "Assignment 6: Creating a Simple Web Server with Node.js http module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "nodejs",
+    "http",
+    "web-server",
+    "routing"
+  ],
+  "author": "Madhusmita",
+  "license": "ISC"
+}

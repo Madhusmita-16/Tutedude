@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services - Node.js HTTP Web Server | Assignment 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <a href="/home" class="nav-brand">
+            ⚡ <span>NodeServer</span>
+        </a>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/home" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/services" class="nav-link active">Services</a></li>
+                <li><a href="/contact" class="nav-link">Contact</a></li>
+                <li><a href="/test-404" class="nav-link" style="color: #ef4444;">Test 404</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <section class="hero">
+            <span class="badge">🛠️ Core Capabilities</span>
+            <h1>Server Services & Architecture</h1>
+            <p>Our custom Node.js HTTP web server provides high-performance, non-blocking static file serving, route dispatching, and automated MIME header resolution.</p>
+        </section>
+
+        <!-- Service Cards Grid -->
+        <section class="grid">
+            <article class="card">
+                <div class="card-icon">🚀</div>
+                <h3>Asynchronous I/O Stream</h3>
+                <p>Loads HTML templates and CSS stylesheets asynchronously using <code>fs.readFile</code> streams, ensuring zero blocking on the single-threaded event loop.</p>
+                <span class="card-tag">fs.readFile Module</span>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">🔀</div>
+                <h3>Route Dispatcher</h3>
+                <p>Maps clean URL paths like <code>/home</code>, <code>/about</code>, <code>/services</code>, and <code>/contact</code> directly to target public template files.</p>
+                <span class="card-tag">http & url Modules</span>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">🏷️</div>
+                <h3>MIME Header Resolver</h3>
+                <p>Automatically inspects file extensions to send proper HTTP headers such as <code>text/html</code>, <code>text/css</code>, and <code>application/json</code>.</p>
+                <span class="card-tag">Content-Type Headers</span>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">🛡️</div>
+                <h3>Graceful 404 Handling</h3>
+                <p>Intercepts missing files or invalid routes and dispatches a custom styled 404 HTML template with an HTTP status code of 404.</p>
+                <span class="card-tag">HTTP 404 Status</span>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">📊</div>
+                <h3>Real-Time Request Logger</h3>
+                <p>Logs incoming HTTP methods, requested URI pathnames, and exact timestamps to stdout for easy monitoring and debugging.</p>
+                <span class="card-tag">Console Middleware</span>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">🔒</div>
+                <h3>Security & Error Fallbacks</h3>
+                <p>Prevents directory traversal attacks by constraining file resolution strictly inside the designated <code>public/</code> directory.</p>
+                <span class="card-tag">Path Normalization</span>
+            </article>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 NodeServer | Built with Node.js http & fs modules</p>
+    </footer>
+
+</body>
+</html>

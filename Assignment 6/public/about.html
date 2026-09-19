@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Node.js HTTP Web Server | Assignment 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <a href="/home" class="nav-brand">
+            ⚡ <span>NodeServer</span>
+        </a>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/home" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link active">About</a></li>
+                <li><a href="/services" class="nav-link">Services</a></li>
+                <li><a href="/contact" class="nav-link">Contact</a></li>
+                <li><a href="/test-404" class="nav-link" style="color: #ef4444;">Test 404</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <section class="hero">
+            <span class="badge">📖 System Architecture</span>
+            <h1>About Our Node.js Web Server</h1>
+            <p>Learn how this server processes client HTTP requests, resolves routes asynchronously, sets MIME headers, and handles HTTP response codes without third-party frameworks.</p>
+        </section>
+
+        <!-- Technical Overview Cards -->
+        <section class="grid">
+            <article class="card">
+                <div class="card-icon">🧠</div>
+                <h3>Core Node.js Engine</h3>
+                <p>Constructed exclusively using built-in modules: <code>http</code> for connection handling, <code>fs</code> for non-blocking file access, and <code>path</code> for secure path resolving.</p>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">⚡</div>
+                <h3>Non-Blocking Execution</h3>
+                <p>Employs asynchronous callbacks so the main event loop remains free to process concurrent HTTP requests efficiently under server load.</p>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">🎯</div>
+                <h3>Standardized Status Codes</h3>
+                <p>Correctly dispatches HTTP status codes: <code>200 OK</code> for successful file serving, <code>404 Not Found</code> for invalid routes, and <code>500 Server Error</code> for file exceptions.</p>
+            </article>
+        </section>
+
+        <!-- Request Lifecycle Timeline -->
+        <section style="margin-top: 50px;">
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px; color: var(--text-main); text-align: center;">
+                🔄 Request Lifecycle & Flow Execution
+            </h2>
+
+            <div class="timeline">
+                <div class="timeline-step">
+                    <div class="timeline-number">1</div>
+                    <div class="timeline-content">
+                        <h4>HTTP Client Request</h4>
+                        <p>The browser sends an HTTP GET request (e.g. <code>GET /about</code> or <code>GET /style.css</code>) to port 3000.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="timeline-number">2</div>
+                    <div class="timeline-content">
+                        <h4>URL Parsing & Route Matching</h4>
+                        <p>The server parses the request URL using Node's <code>url</code> module and matches the pathname against the route dictionary.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="timeline-number">3</div>
+                    <div class="timeline-content">
+                        <h4>Asynchronous File Read</h4>
+                        <p>If the route or static asset exists, <code>fs.readFile</code> streams the file contents asynchronously from the filesystem.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="timeline-number">4</div>
+                    <div class="timeline-content">
+                        <h4>MIME Header & Response Emission</h4>
+                        <p>The server sets the HTTP header (e.g. <code>Content-Type: text/html</code>) and sends the status code along with the page payload.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 NodeServer | Built with Node.js http & fs modules</p>
+    </footer>
+
+</body>
+</html>

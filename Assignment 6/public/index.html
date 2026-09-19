@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Node.js HTTP Web Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <a href="/home" class="nav-brand">
+            ⚡ <span>NodeServer</span>
+        </a>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/home" class="nav-link active">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/services" class="nav-link">Services</a></li>
+                <li><a href="/contact" class="nav-link">Contact</a></li>
+                <li><a href="/test-404" class="nav-link" style="color: #ef4444;">Test 404</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <section class="hero">
+            <h1>Custom Web Server Built with <span>Pure Node.js</span></h1>
+            <p>Welcome to our custom Node.js HTTP Web Server implementation. This application handles routing, asynchronous static file serving, HTTP status codes, and error pages using core Node.js modules.</p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="/services" class="btn btn-primary">Explore Services ➔</a>
+                <a href="/about" class="btn btn-secondary">Learn About Architecture</a>
+            </div>
+        </section>
+
+        <section class="grid">
+            <article class="card">
+                <div class="card-icon">⚡</div>
+                <h3>High Performance</h3>
+                <p>Built on top of Node.js event-driven non-blocking I/O model using the core <code>http</code> module for low-overhead routing.</p>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">📂</div>
+                <h3>Asynchronous File Serving</h3>
+                <p>Leverages asynchronous <code>fs.readFile</code> streams to load HTML pages and CSS assets without blocking the main event loop.</p>
+            </article>
+
+            <article class="card">
+                <div class="card-icon">🛡️</div>
+                <h3>Custom Error Handling</h3>
+                <p>Features graceful error handling for missing assets and invalid routes with a custom styled 404 HTTP response page.</p>
+            </article>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 NodeServer | Built with Node.js http & fs modules</p>
+    </footer>
+
+</body>
+</html>

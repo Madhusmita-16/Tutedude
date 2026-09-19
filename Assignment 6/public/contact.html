@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Node.js HTTP Web Server | Assignment 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <a href="/home" class="nav-brand">
+            ⚡ <span>NodeServer</span>
+        </a>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/home" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/services" class="nav-link">Services</a></li>
+                <li><a href="/contact" class="nav-link active">Contact</a></li>
+                <li><a href="/test-404" class="nav-link" style="color: #ef4444;">Test 404</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <section class="hero">
+            <span class="badge">📬 Get In Touch</span>
+            <h1>Contact Us</h1>
+            <p>Send a message through our interactive contact form served by our Node.js HTTP web server.</p>
+        </section>
+
+        <!-- Contact Form -->
+        <form class="contact-form" onsubmit="event.preventDefault(); alert('Message sent successfully! (Demo submission)');">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" class="form-input" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-input" placeholder="Enter your email address" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" class="form-input" placeholder="Type your message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Send Message 🚀</button>
+        </form>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 NodeServer | Built with Node.js http & fs modules</p>
+    </footer>
+
+</body>
+</html>

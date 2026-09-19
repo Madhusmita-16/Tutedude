@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Page Not Found - Node.js HTTP Web Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <a href="/home" class="nav-brand">
+            ⚡ <span>NodeServer</span>
+        </a>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/home" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/services" class="nav-link">Services</a></li>
+                <li><a href="/contact" class="nav-link">Contact</a></li>
+                <li><a href="/test-404" class="nav-link active" style="color: #ef4444;">Test 404</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <section class="error-page">
+            <div class="error-code">404</div>
+            <span class="badge" style="background: #fef2f2; color: #dc2626; border-color: #fecaca;">⚠️ HTTP STATUS CODE 404 - PAGE NOT FOUND</span>
+            <h1 style="font-size: 2.2rem; margin: 16px 0 12px; color: var(--text-main);">Oops! Page Not Found</h1>
+            <p style="color: var(--text-sub); max-width: 520px; margin: 0 auto 32px; font-size: 1.05rem;">
+                The requested URL route does not exist on this server. Our Node.js HTTP server handled this missing route gracefully with status code <code>404</code>.
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="/home" class="btn btn-primary">Return to Safety (Home) 🏠</a>
+                <a href="/services" class="btn btn-secondary">Explore Services</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 NodeServer | Built with Node.js http & fs modules</p>
+    </footer>
+
+</body>
+</html>
