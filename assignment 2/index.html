@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laundry Mart - Laundry Services Hero Section</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #00a8ff;
+            --primary-hover: #0086cc;
+            --text-heading: #2d3748;
+            --text-body: #8898aa;
+            --badge-bg: #e8f4fe;
+            --badge-text: #00a8ff;
+            --bg-hero: #ffffff;
+            --border-color: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #ffffff;
+            color: var(--text-heading);
+            overflow-x: hidden;
+        }
+
+        /* Hero Container - 100vh Viewport fitting exact screen without scroll */
+        .hero-viewport-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        /* Navbar with Logo Image and Laundry Mart Brand Name */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            height: 90px;
+            background: #ffffff;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 44px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .logo-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #2b2c34;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-blue);
+        }
+
+        .user-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        /* Hero Section (Left & Right Divs) */
+        .hero-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8%;
+            gap: 40px;
+        }
+
+        /* Left Div */
+        .hero-left {
+            flex: 1;
+            max-width: 560px;
+        }
+
+        .hero-left h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.25;
+            color: var(--text-heading);
+            margin-bottom: 20px;
+        }
+
+        .hero-left h1 span {
+            color: var(--primary-blue);
+        }
+
+        .hero-left p {
+            font-size: 1.05rem;
+            color: var(--text-body);
+            line-height: 1.65;
+            margin-bottom: 35px;
+            max-width: 520px;
+        }
+
+        .btn-book {
+            display: inline-block;
+            background: var(--primary-blue);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 15px 36px;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: background 0.2s ease, transform 0.1s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-book:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Right Div */
+        .hero-right {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-right img {
+            max-width: 100%;
+            max-height: calc(100vh - 180px);
+            object-fit: contain;
+            mix-blend-mode: multiply;
+            filter: contrast(102%) brightness(101%);
+        }
+
+        /* Main Assignment 1 Sections Stacked Below */
+        .main-content {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .section-box {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .section-box h2 {
+            font-size: 1.5rem;
+            color: var(--text-heading);
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 12px;
+        }
+
+        /* About Section */
+        .about-section p {
+            color: #475569;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        /* Image Section */
+        .image-section {
+            text-align: center;
+        }
+
+        .image-section img {
+            max-width: 100%;
+            max-height: 380px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        /* Services Section */
+        .services-section ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            padding-left: 0;
+        }
+
+        .services-section li {
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .services-section li::before {
+            content: "✓";
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        /* Price List Section */
+        .price-section table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: #ffffff;
+        }
+
+        .price-section table, 
+        .price-section th, 
+        .price-section td {
+            border: 1px solid var(--border-color);
+        }
+
+        .price-section th, 
+        .price-section td {
+            padding: 12px 16px;
+            text-align: left;
+        }
+
+        .price-section th {
+            background-color: #f1f5f9;
+            color: var(--text-heading);
+            font-weight: 600;
+        }
+
+        /* Book Now Section */
+        .book-section form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #334155;
+        }
+
+        .form-group input {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.15);
+        }
+
+        .form-group button,
+        .form-group input[type="submit"] {
+            background: var(--primary-blue);
+            color: #ffffff;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Footer Section */
+        footer {
+            background: #0f172a;
+            color: #cbd5e1;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero-viewport-container {
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+            }
+
+            .hero-section {
+                flex-direction: column;
+                padding: 40px 6%;
+                text-align: center;
+            }
+
+            .hero-left h1 {
+                font-size: 2.2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Viewport Container (Fits 100vh without vertical scroll) -->
+    <div class="hero-viewport-container" id="home">
+        
+        <!-- Navbar with Logo Image & Laundry Mart Brand Name -->
+        <nav>
+            <a href="#home" class="logo-container">
+                <img src="logo.png" alt="Laundry Mart Logo" class="logo-img">
+                <span class="logo-text">Laundry Mart</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact Us</a></li>
+            </ul>
+            <span class="user-badge">Username</span>
+        </nav>
+
+        <!-- Hero Section (Two Divs) -->
+        <div class="hero-section">
+            <!-- Left Div -->
+            <div class="hero-left">
+                <h1>Revitalize Your<br>Clothes with Expert<br><span>Laundry Services!</span></h1>
+                <p>From premium dry cleaning to swift wash and fold, we deliver care and convenience. Schedule a pickup and rediscover the freshness of your clothes today!</p>
+                <a href="#book" class="btn-book">Book a service today!</a>
+            </div>
+
+            <!-- Right Div -->
+            <div class="hero-right">
+                <img src="hero-image.png" alt="Laundry Service Washing Machine" onerror="this.onerror=null; this.src='laundry.png';">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Assignment 1 Main Code & Sections -->
+    <div class="main-content">
+
+        <!-- Header Section (Assignment 1) -->
+        <div class="section-box" style="text-align: center; background: #f8fafc;">
+            <h1 style="font-size: 1.8rem; color: #1e3a8a;">Welcome to Laundry Mart</h1>
+        </div>
+        
+        <!-- About Section -->
+        <div class="section-box about-section" id="about">
+            <h2>About Us</h2>
+            <p>
+                Welcome to Laundry Mart, your one-stop solution for all your laundry needs. Our dedicated team ensures top-notch service, providing a hassle-free and efficient laundry experience. With a focus on quality and customer satisfaction, we take care of your garments as if they were our own. Whether it is daily wear, delicate fabrics, or bulky bedding, we handle every item with utmost care and attention. Enjoy fresh, clean, and neatly folded clothes delivered right to your doorstep with our fast and reliable service.
+            </p>
+        </div>
+
+        <!-- Image Section -->
+        <div class="section-box image-section">
+            <img src="laundry.png" alt="Laundry Service" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=800&q=80';">
+        </div>
+
+        <!-- Services Section -->
+        <div class="section-box services-section" id="services">
+            <h2>Our Services</h2>
+            <ul>
+                <li>Washing and Drying</li>
+                <li>Ironing and Folding</li>
+                <li>Dry Cleaning</li>
+                <li>Stain Removal</li>
+                <li>Express Services</li>
+                <li>Special Garment Care</li>
+                <li>And more...</li>
+            </ul>
+        </div>
+
+        <!-- Price List Section -->
+        <div class="section-box price-section">
+            <h2>Price List</h2>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Washing and Drying</td>
+                        <td>Rs 10.00</td>
+                    </tr>
+                    <tr>
+                        <td>Ironing and Folding</td>
+                        <td>Rs 5.00</td>
+                    </tr>
+                    <tr>
+                        <td>Dry Cleaning</td>
+                        <td>Rs 15.00</td>
+                    </tr>
+                    <tr>
+                        <td>Stain Removal</td>
+                        <td>Rs 8.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Book Now Section -->
+        <div class="section-box book-section" id="book">
+            <h2>Book Now</h2>
+            <form action="#" method="post" onsubmit="event.preventDefault(); alert('Booking submitted successfully!');">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email address">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone:</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Submit">
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Footer Section -->
+    <footer id="contact">
+        <p>Contact us at: info@laundrymart.com</p>
+    </footer>
+
+</body>
+</html>
