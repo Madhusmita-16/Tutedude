@@ -1,20 +1,20 @@
 /**
- * Assignment 9: Visitor & Pre-Registration Model Definition
+ * VISITRA - Visitor Schema Model
  */
 
-class VisitorModel {
-    constructor({ name, email, phone, organization, hostEmployee, purpose, visitDate }) {
-        this.id = 'vis-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 6);
-        this.name = name.trim();
-        this.email = email.toLowerCase().trim();
-        this.phone = phone.trim();
-        this.organization = organization ? organization.trim() : 'Independent';
-        this.hostEmployee = hostEmployee ? hostEmployee.trim() : 'Frontdesk Staff';
-        this.purpose = purpose ? purpose.trim() : 'Business Meeting';
-        this.status = 'Approved'; // ['Pending', 'Approved', 'Checked-In', 'Checked-Out', 'Rejected']
-        this.visitDate = visitDate || new Date().toISOString().split('T')[0];
-        this.createdAt = new Date().toISOString();
-    }
-}
+const mongoose = require('mongoose');
 
-module.exports = VisitorModel;
+const VisitorSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true, trim: true },
+        email: { type: String, required: true, lowercase: true, trim: true },
+        phone: { type: String, required: true, trim: true },
+        company: { type: String, default: 'Independent', trim: true },
+        governmentId: { type: String, default: '', trim: true },
+        photo: { type: String, default: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+        status: { type: String, enum: ['REGISTERED', 'CHECKED_IN', 'CHECKED_OUT', 'BLACK_LISTED'], default: 'REGISTERED' }
+    },
+    { timestamps: true }
+);
+
+module.exports = mongoose.model('Visitor', VisitorSchema);

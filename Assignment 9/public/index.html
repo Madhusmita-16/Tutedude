@@ -3,67 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment 9: Visitor Pass Management System</title>
+    <title>VISITRA - Smart Visitor Management & Digital Pass System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
 
-    <!-- React & ReactDOM & QRCode Generator CDN -->
+    <!-- React & Axios CDN -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
 
     <div id="root"></div>
 
-    <!-- React App Script -->
     <script type="text/babel">
-        const { useState, useEffect, useCallback, useRef } = React;
+        const { useState, useEffect, useCallback } = React;
 
         function App() {
-            const [role, setRole] = useState('Admin'); // ['Admin', 'Security', 'Host', 'Visitor']
-            const [analytics, setAnalytics] = useState({ totalVisitors: 0, checkedInCount: 0, checkedOutCount: 0, activePassesCount: 0 });
+            // Role State: 'ADMIN' | 'SECURITY' | 'EMPLOYEE' | 'VISITOR'
+            const [role, setRole] = useState('ADMIN');
+            
+            // Dashboard Data States
+            const [analytics, setAnalytics] = useState({ totalVisitors: 0, checkedInCount: 0, checkedOutCount: 0, activePassesCount: 0, pendingAppointmentsCount: 0 });
             const [visitors, setVisitors] = useState([]);
+            const [appointments, setAppointments] = useState([]);
             const [checkLogs, setCheckLogs] = useState([]);
+            const [auditLogs, setAuditLogs] = useState([]);
             const [searchQuery, setSearchQuery] = useState('');
 
             // Pre-Registration Form State
             const [name, setName] = useState('');
             const [email, setEmail] = useState('');
             const [phone, setPhone] = useState('');
-            const [organization, setOrganization] = useState('');
-            const [hostEmployee, setHostEmployee] = useState('');
+            const [company, setCompany] = useState('');
+            const [hostName, setHostName] = useState('');
             const [purpose, setPurpose] = useState('Business Meeting');
 
-            // Issued Pass Modal/Card State
+            // Pass Card & Printable Modal State
             const [latestPass, setLatestPass] = useState(null);
+            const [showPdfBadge, setShowPdfBadge] = useState(false);
 
             // Scanner Input State
             const [scanPassCode, setScanPassCode] = useState('');
+            const [toast, setToast] = useState({ msg: '', isError: false });
 
-            // Fetch Analytics & Visitor Data
+            const showNotification = (msg, isError = false) => {
+                setToast({ msg, isError });
+                setTimeout(() => setToast({ msg: '', isError: false }), 4000);
+            };
+
+            // Fetch Data from REST APIs
             const loadData = useCallback(async () => {
                 try {
                     // Analytics API
-                    const resAnalytic = await fetch('/api/analytics');
-                    const dataAnalytic = await resAnalytic.json();
-                    if (dataAnalytic.success) setAnalytics(dataAnalytic.metrics);
+                    const resAnalytic = await axios.get('/api/analytics/metrics');
+                    if (resAnalytic.data.success) setAnalytics(resAnalytic.data.metrics);
 
                     // Visitors API
-                    const urlVisitors = searchQuery ? `/api/visitors?query=${encodeURIComponent(searchQuery)}` : '/api/visitors';
-                    const resVis = await fetch(urlVisitors);
-                    const dataVis = await resVis.json();
-                    if (dataVis.success) setVisitors(dataVis.data);
+                    const urlVisitors = searchQuery ? `/api/visitors?search=${encodeURIComponent(searchQuery)}` : '/api/visitors';
+                    const resVis = await axios.get(urlVisitors);
+                    if (resVis.data.success) setVisitors(resVis.data.data);
 
-                    // Logs API
-                    const resLogs = await fetch('/api/checklogs');
-                    const dataLogs = await resLogs.json();
-                    if (dataLogs.success) setCheckLogs(dataLogs.data);
+                    // Appointments API
+                    const resAppt = await axios.get('/api/appointments');
+                    if (resAppt.data.success) setAppointments(resAppt.data.data);
+
+                    // CheckLogs API
+                    const resLogs = await axios.get('/api/checklogs/logs');
+                    if (resLogs.data.success) setCheckLogs(resLogs.data.data);
+
+                    // AuditLogs API
+                    const resAudit = await axios.get('/api/analytics/audit-logs');
+                    if (resAudit.data.success) setAuditLogs(resAudit.data.data);
                 } catch (err) {
-                    console.error("API error", err);
+                    console.error("API Error", err);
                 }
             }, [searchQuery]);
 
@@ -71,91 +87,120 @@
                 loadData();
             }, [loadData]);
 
-            // Register Visitor & Generate Pass (POST /api/visitors/register)
+            // Handle Pre-Registration
             const handleRegister = async (e) => {
                 e.preventDefault();
-                if (!name || !email || !phone) return;
+                if (!name || !email || !phone) {
+                    showNotification('Please fill in required fields (Name, Email, Phone)', true);
+                    return;
+                }
 
                 try {
-                    const res = await fetch('/api/visitors/register', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, email, phone, organization, hostEmployee, purpose })
+                    const res = await axios.post('/api/visitors/register', {
+                        name, email, phone, company, hostName, purpose
                     });
-                    const data = await res.json();
-                    if (data.success) {
-                        setLatestPass(data.data.pass);
-                        setName('');
-                        setEmail('');
-                        setPhone('');
-                        setOrganization('');
-                        setHostEmployee('');
+
+                    if (res.data.success) {
+                        setLatestPass(res.data.data.pass);
+                        showNotification('✅ Visitor Pre-Registered! Pass Issued.');
+                        setName(''); setEmail(''); setPhone(''); setCompany(''); setHostName('');
                         loadData();
-                    } else {
-                        alert(data.error);
                     }
                 } catch (err) {
-                    alert('Registration failed');
+                    showNotification(err.response?.data?.error || 'Registration failed', true);
                 }
             };
 
-            // Check-In Scan (POST /api/passes/checkin)
+            // Gatekeeper Check-In
             const handleCheckIn = async () => {
-                if (!scanPassCode) return;
+                if (!scanPassCode) return showNotification('Enter or scan a pass code', true);
                 try {
-                    const res = await fetch('/api/passes/checkin', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ passCode: scanPassCode })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        alert(`✅ ${data.message}`);
+                    const res = await axios.post('/api/checklogs/check-in', { passCode: scanPassCode, scannedBy: `Security (${role})` });
+                    if (res.data.valid) {
+                        showNotification(`🟢 ${res.data.message}`);
                         setScanPassCode('');
                         loadData();
                     } else {
-                        alert(`⚠️ ${data.error}`);
+                        showNotification(`⚠️ ${res.data.error}`, true);
                     }
                 } catch (err) {
-                    alert('Check-in failed');
+                    showNotification(err.response?.data?.error || 'Check-In failed', true);
                 }
             };
 
-            // Check-Out Scan (POST /api/passes/checkout)
+            // Gatekeeper Check-Out
             const handleCheckOut = async () => {
-                if (!scanPassCode) return;
+                if (!scanPassCode) return showNotification('Enter or scan a pass code', true);
                 try {
-                    const res = await fetch('/api/passes/checkout', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ passCode: scanPassCode })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        alert(`🚪 ${data.message}`);
+                    const res = await axios.post('/api/checklogs/check-out', { passCode: scanPassCode, scannedBy: `Security (${role})` });
+                    if (res.data.valid) {
+                        showNotification(`🚪 ${res.data.message}`);
                         setScanPassCode('');
                         loadData();
                     } else {
-                        alert(`⚠️ ${data.error}`);
+                        showNotification(`⚠️ ${res.data.error}`, true);
                     }
                 } catch (err) {
-                    alert('Check-out failed');
+                    showNotification(err.response?.data?.error || 'Check-Out failed', true);
                 }
+            };
+
+            // Employee Host Approve
+            const handleApprove = async (id) => {
+                try {
+                    const res = await axios.patch(`/api/appointments/${id}/approve`);
+                    if (res.data.success) {
+                        showNotification('Appointment Approved');
+                        loadData();
+                    }
+                } catch (err) {
+                    showNotification('Approval failed', true);
+                }
+            };
+
+            // Employee Host Reject
+            const handleReject = async (id) => {
+                try {
+                    const res = await axios.patch(`/api/appointments/${id}/reject`);
+                    if (res.data.success) {
+                        showNotification('Appointment Rejected');
+                        loadData();
+                    }
+                } catch (err) {
+                    showNotification('Rejection failed', true);
+                }
+            };
+
+            // Export Reports to CSV
+            const handleExportCSV = () => {
+                if (visitors.length === 0) return showNotification('No visitor records to export', true);
+                let csv = 'Name,Email,Phone,Company,Status\n';
+                visitors.forEach(v => {
+                    csv += `"${v.name}","${v.email}","${v.phone}","${v.company}","${v.status}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `VISITRA_Visitor_Report_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                showNotification('📄 Visitor CSV Report Downloaded');
             };
 
             return (
                 <div>
-                    {/* Header Bar with Role Switcher */}
+                    {/* Header Navbar with Brand Identity & Role Switcher */}
                     <header className="navbar">
                         <a href="/" className="nav-brand">
-                            🎟️ <span>Visitor Pass Management</span>
+                            🎟️ <span>VISITRA</span>
+                            <span className="brand-badge">PROD MERN</span>
                         </a>
 
                         <div className="role-switcher">
-                            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#94a3b8', paddingLeft: '8px' }}>ACTIVE ROLE:</span>
-                            {['Admin', 'Security', 'Host', 'Visitor'].map(r => (
+                            <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', paddingLeft: '8px' }}>SWITCH ROLE:</span>
+                            {['ADMIN', 'SECURITY', 'EMPLOYEE', 'VISITOR'].map(r => (
                                 <button 
-                                    key={r} 
+                                    key={r}
                                     className={`role-btn ${role === r ? 'active' : ''}`}
                                     onClick={() => setRole(r)}
                                 >
@@ -166,13 +211,29 @@
                     </header>
 
                     <main className="container">
-                        {/* Hero Section */}
+                        {/* Hero Header */}
                         <section className="hero">
-                            <h1>Digital Visitor <span>Pass System</span></h1>
-                            <p>Complete application with pre-registration, QR code verification, role-based access, and real-time check-in/out logs.</p>
+                            <h1>Smart Visitor <span>Pass Management</span></h1>
+                            <p>Production MERN application with Pre-Registration, QR Pass Verification, Role-Based Access Control, and Enterprise Audit Trails.</p>
                         </section>
 
-                        {/* Analytics Cards */}
+                        {/* Notification Toast */}
+                        {toast.msg && (
+                            <div style={{
+                                background: toast.isError ? '#fef2f2' : '#f0fdf4',
+                                color: toast.isError ? '#b91c1c' : '#15803d',
+                                border: `1px solid ${toast.isError ? '#fca5a5' : '#86efac'}`,
+                                padding: '12px 20px',
+                                borderRadius: '12px',
+                                marginBottom: '20px',
+                                fontWeight: '700',
+                                fontSize: '0.9rem'
+                            }}>
+                                {toast.msg}
+                            </div>
+                        )}
+
+                        {/* Visual Analytics Metrics Bar */}
                         <section className="stats-grid">
                             <div className="stat-card">
                                 <div className="stat-icon">👥</div>
@@ -186,7 +247,7 @@
                                 <div className="stat-icon" style={{ background: '#dcfce7', color: '#16a34a' }}>🟢</div>
                                 <div>
                                     <div className="stat-val">{analytics.checkedInCount}</div>
-                                    <div className="stat-lbl">Currently Checked-In</div>
+                                    <div className="stat-lbl">Checked-In On-Site</div>
                                 </div>
                             </div>
 
@@ -199,213 +260,275 @@
                             </div>
 
                             <div className="stat-card">
-                                <div className="stat-icon" style={{ background: '#f3f4f6', color: '#4b5563' }}>🚪</div>
+                                <div className="stat-icon" style={{ background: '#fef3c7', color: '#d97706' }}>⏳</div>
                                 <div>
-                                    <div className="stat-val">{analytics.checkedOutCount}</div>
-                                    <div className="stat-lbl">Checked-Out Today</div>
+                                    <div className="stat-val">{analytics.pendingAppointmentsCount}</div>
+                                    <div className="stat-lbl">Pending Host Approvals</div>
                                 </div>
                             </div>
                         </section>
 
-                        {/* App Interactive Grid */}
+                        {/* Role Dashboard Views */}
                         <div className="app-grid">
                             
-                            {/* Left Panel: Register Visitor & Pass Issuance */}
+                            {/* Left Column: Role-Specific Action Card */}
                             <aside className="panel">
-                                <h2 className="panel-title">📝 Issue Visitor Pass</h2>
-                                <form onSubmit={handleRegister}>
-                                    <div className="form-group">
-                                        <label htmlFor="vName">Visitor Full Name *</label>
-                                        <input 
-                                            type="text" 
-                                            id="vName" 
-                                            className="form-input" 
-                                            placeholder="e.g. John Doe" 
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            required 
-                                        />
+                                {role === 'ADMIN' && (
+                                    <div>
+                                        <h2 className="panel-title">⚙️ Admin Control Panel</h2>
+                                        <p style={{ fontSize: '0.88rem', color: '#64748b', marginBottom: '16px' }}>Manage user permissions, view system metrics, and export compliance reports.</p>
+                                        <button className="btn btn-primary" onClick={handleExportCSV}>
+                                            📊 Export Visitor Report (CSV)
+                                        </button>
                                     </div>
+                                )}
 
-                                    <div className="form-group">
-                                        <label htmlFor="vEmail">Email Address *</label>
-                                        <input 
-                                            type="email" 
-                                            id="vEmail" 
-                                            className="form-input" 
-                                            placeholder="e.g. john@company.com" 
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required 
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="vPhone">Phone Number *</label>
-                                        <input 
-                                            type="tel" 
-                                            id="vPhone" 
-                                            className="form-input" 
-                                            placeholder="+1 555-0199" 
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            required 
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="vOrg">Organization / Company</label>
-                                        <input 
-                                            type="text" 
-                                            id="vOrg" 
-                                            className="form-input" 
-                                            placeholder="e.g. Acme Corp" 
-                                            value={organization}
-                                            onChange={(e) => setOrganization(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="vHost">Host Employee Name</label>
-                                        <input 
-                                            type="text" 
-                                            id="vHost" 
-                                            className="form-input" 
-                                            placeholder="e.g. Sarah Connor" 
-                                            value={hostEmployee}
-                                            onChange={(e) => setHostEmployee(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <button type="submit" className="btn btn-primary">
-                                        🎟️ Generate Digital Pass & QR Code
-                                    </button>
-                                </form>
-
-                                {/* Generated Digital Pass Badge Display */}
-                                {latestPass && (
-                                    <div className="pass-badge-card">
-                                        <span className="badge" style={{ background: '#dcfce7', color: '#15803d' }}>DIGITAL PASS ISSUED</span>
-                                        <div className="pass-code-title">{latestPass.passCode}</div>
-                                        <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0f172a' }}>{latestPass.visitorName}</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '8px' }}>Host: {latestPass.hostEmployee}</div>
-                                        
-                                        {/* Visual QR Code Container */}
-                                        <div className="qr-box">
-                                            <img 
-                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(latestPass.passCode)}`} 
-                                                alt="QR Code"
-                                                style={{ width: '120px', height: '120px' }}
+                                {role === 'SECURITY' && (
+                                    <div>
+                                        <h2 className="panel-title">📷 Security Gate Scanner</h2>
+                                        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '12px' }}>Scan QR token or type Pass Number for check-in/out verification.</p>
+                                        <div className="form-group">
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                placeholder="e.g. VP-2026-1001" 
+                                                value={scanPassCode} 
+                                                onChange={(e) => setScanPassCode(e.target.value)} 
                                             />
                                         </div>
-                                        <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Valid for Today: {latestPass.validDate}</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                            <button className="btn btn-success" onClick={handleCheckIn}>
+                                                🟢 Check-In
+                                            </button>
+                                            <button className="btn btn-danger" onClick={handleCheckOut}>
+                                                🚪 Check-Out
+                                            </button>
+                                        </div>
+                                        <button 
+                                            className="btn btn-secondary" 
+                                            style={{ marginTop: '12px', width: '100%', fontSize: '0.82rem' }}
+                                            onClick={() => setScanPassCode('VP-2026-1001')}
+                                        >
+                                            ⚡ Auto-Fill Test Pass (VP-2026-1001)
+                                        </button>
+                                    </div>
+                                )}
+
+                                {(role === 'VISITOR' || role === 'EMPLOYEE') && (
+                                    <div>
+                                        <h2 className="panel-title">📝 Visitor Pre-Registration</h2>
+                                        <form onSubmit={handleRegister}>
+                                            <div className="form-group">
+                                                <label>Full Name *</label>
+                                                <input type="text" className="form-input" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} required />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Email Address *</label>
+                                                <input type="email" className="form-input" placeholder="john@company.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Phone Number *</label>
+                                                <input type="tel" className="form-input" placeholder="+1 555-0199" value={phone} onChange={e => setPhone(e.target.value)} required />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Company / Organization</label>
+                                                <input type="text" className="form-input" placeholder="Acme Corp" value={company} onChange={e => setCompany(e.target.value)} />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Host Employee Name</label>
+                                                <input type="text" className="form-input" placeholder="Sarah Connor" value={hostName} onChange={e => setHostName(e.target.value)} />
+                                            </div>
+                                            <button type="submit" className="btn btn-primary">
+                                                🎟️ Generate Digital Pass & QR Code
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+
+                                {/* Digital Pass Badge Card Display */}
+                                {latestPass && (
+                                    <div className="pass-badge-card">
+                                        <span className="status-tag status-in">DIGITAL PASS READY</span>
+                                        <div className="pass-code-title">{latestPass.passNumber}</div>
+                                        <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{latestPass.visitorName}</div>
+                                        <div style={{ fontSize: '0.82rem', color: '#64748b' }}>Host: {latestPass.hostName}</div>
+
+                                        <div className="qr-box">
+                                            <img 
+                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(latestPass.qrToken)}`} 
+                                                alt="QR Code" 
+                                                style={{ width: '120px', height: '120px' }} 
+                                            />
+                                        </div>
+
+                                        <button 
+                                            className="btn btn-secondary" 
+                                            style={{ width: '100%', fontSize: '0.82rem' }}
+                                            onClick={() => setShowPdfBadge(true)}
+                                        >
+                                            🖨️ View & Print PDF Badge Card
+                                        </button>
                                     </div>
                                 )}
                             </aside>
 
-                            {/* Right Panel: Gate Scanner & Check Logs */}
+                            {/* Right Column: Dynamic Data Tables */}
                             <section className="panel">
-                                
-                                {/* Gate Scanner Controls */}
-                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '20px', borderRadius: '16px', marginBottom: '24px' }}>
-                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        📷 Security / Gate Pass Scanner
-                                    </h3>
-                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                        <input 
-                                            type="text" 
-                                            className="form-input" 
-                                            placeholder="Enter or scan Pass Code (e.g. PASS-123456)..."
-                                            value={scanPassCode}
-                                            onChange={(e) => setScanPassCode(e.target.value)}
-                                        />
-                                        <button className="btn btn-success" onClick={handleCheckIn}>
-                                            🟢 Check-In
-                                        </button>
-                                        <button className="btn btn-danger" onClick={handleCheckOut}>
-                                            🚪 Check-Out
-                                        </button>
+                                {role === 'EMPLOYEE' ? (
+                                    <div>
+                                        <h3 style={{ fontSize: '1.15rem', fontWeight: '700', marginBottom: '16px' }}>
+                                            📩 Host Appointment Invitations & Approvals
+                                        </h3>
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Visitor</th>
+                                                    <th>Purpose</th>
+                                                    <th>Scheduled Date</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {appointments.map(a => (
+                                                    <tr key={a._id}>
+                                                        <td>
+                                                            <div style={{ fontWeight: '700' }}>{a.visitorName}</div>
+                                                            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{a.visitorEmail}</div>
+                                                        </td>
+                                                        <td>{a.purpose}</td>
+                                                        <td>{a.scheduledDate} {a.scheduledTime}</td>
+                                                        <td>
+                                                            <span className={`status-tag ${a.status === 'APPROVED' ? 'status-in' : a.status === 'REJECTED' ? 'status-rejected' : 'status-pending'}`}>
+                                                                {a.status}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            {a.status === 'PENDING' && (
+                                                                <div style={{ display: 'flex', gap: '6px' }}>
+                                                                    <button className="btn btn-success" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => handleApprove(a._id)}>Approve</button>
+                                                                    <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => handleReject(a._id)}>Reject</button>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div>
+                                        {/* Visitor Directory */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                            <h3 style={{ fontSize: '1.15rem', fontWeight: '700' }}>📋 Visitor Directory & Status</h3>
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                style={{ width: '220px', padding: '6px 12px', fontSize: '0.85rem' }} 
+                                                placeholder="Search visitor..." 
+                                                value={searchQuery}
+                                                onChange={e => setSearchQuery(e.target.value)}
+                                            />
+                                        </div>
 
-                                {/* Visitor Directory Search */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                    <h3 style={{ fontSize: '1.15rem', fontWeight: '700' }}>📋 Visitor Roster & Status</h3>
-                                    <input 
-                                        type="text" 
-                                        className="form-input" 
-                                        style={{ width: '240px', padding: '6px 12px', fontSize: '0.88rem' }}
-                                        placeholder="Search visitor or org..." 
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Visitor Name</th>
+                                                    <th>Company</th>
+                                                    <th>Govt ID</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {visitors.map(v => (
+                                                    <tr key={v._id}>
+                                                        <td>
+                                                            <div style={{ fontWeight: '700' }}>{v.name}</div>
+                                                            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{v.email}</div>
+                                                        </td>
+                                                        <td>{v.company}</td>
+                                                        <td style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{v.governmentId}</td>
+                                                        <td>
+                                                            <span className={`status-tag ${v.status === 'CHECKED_IN' ? 'status-in' : v.status === 'CHECKED_OUT' ? 'status-out' : 'status-approved'}`}>
+                                                                {v.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
 
-                                {/* Visitors Table */}
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Visitor Name</th>
-                                            <th>Organization</th>
-                                            <th>Host Employee</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {visitors.map(v => (
-                                            <tr key={v.id}>
-                                                <td>
-                                                    <div style={{ fontWeight: '700' }}>{v.name}</div>
-                                                    <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{v.email}</div>
-                                                </td>
-                                                <td>{v.organization}</td>
-                                                <td>{v.hostEmployee}</td>
-                                                <td>
-                                                    <span className={`status-tag ${v.status === 'Checked-In' ? 'status-in' : v.status === 'Checked-Out' ? 'status-out' : 'status-approved'}`}>
-                                                        {v.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-
-                                {/* Audit Logs Section */}
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginTop: '32px', marginBottom: '12px' }}>
-                                    📜 Audit Check-In / Check-Out Log History
-                                </h3>
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Pass Code</th>
-                                            <th>Visitor Name</th>
-                                            <th>Action</th>
-                                            <th>Timestamp</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {checkLogs.map(log => (
-                                            <tr key={log.logId}>
-                                                <td style={{ fontFamily: 'monospace', fontWeight: '700', color: '#2563eb' }}>{log.passCode}</td>
-                                                <td>{log.visitorName}</td>
-                                                <td>
-                                                    <span className={`status-tag ${log.action === 'CHECK-IN' ? 'status-in' : 'status-out'}`}>
-                                                        {log.action}
-                                                    </span>
-                                                </td>
-                                                <td style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                                                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        {/* Audit Logs Table for Admin/Security */}
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginTop: '32px', marginBottom: '12px' }}>
+                                            📜 System Audit & Gatekeeper Check Logs
+                                        </h3>
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Pass Code</th>
+                                                    <th>Visitor Name</th>
+                                                    <th>Action</th>
+                                                    <th>Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {checkLogs.map(log => (
+                                                    <tr key={log._id}>
+                                                        <td style={{ fontFamily: 'monospace', fontWeight: '700', color: '#2563eb' }}>{log.passNumber}</td>
+                                                        <td>{log.visitorName}</td>
+                                                        <td>
+                                                            <span className={`status-tag ${log.action === 'CHECK_IN' ? 'status-in' : 'status-out'}`}>
+                                                                {log.action}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                                                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </section>
                         </div>
                     </main>
 
+                    {/* Printable PDF Badge Preview Modal */}
+                    {showPdfBadge && latestPass && (
+                        <div className="modal-overlay" onClick={() => setShowPdfBadge(false)}>
+                            <div className="modal-container" onClick={e => e.stopPropagation()} style={{ padding: '24px', textAlign: 'center' }}>
+                                <div style={{ border: '2px solid #2563eb', borderRadius: '16px', padding: '24px', background: '#ffffff' }}>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#2563eb', marginBottom: '4px' }}>VISITRA CORPORATE PASS</div>
+                                    <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '16px' }}>BUILDING A FRONT GATE ACCESS</div>
+
+                                    <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a' }}>{latestPass.visitorName}</div>
+                                    <div style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '12px' }}>Host: {latestPass.hostName}</div>
+
+                                    <div className="qr-box">
+                                        <img 
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(latestPass.qrToken)}`} 
+                                            alt="Pass QR Code" 
+                                            style={{ width: '140px', height: '140px' }} 
+                                        />
+                                    </div>
+
+                                    <div style={{ fontFamily: 'monospace', fontWeight: '800', fontSize: '1.1rem', color: '#2563eb', margin: '8px 0' }}>
+                                        {latestPass.passNumber}
+                                    </div>
+                                    <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Valid Today: {latestPass.validFrom} - {latestPass.validUntil}</div>
+                                </div>
+                                <div style={{ marginTop: '16px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                                    <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => window.print()}>🖨️ Print Badge</button>
+                                    <button className="btn btn-secondary" onClick={() => setShowPdfBadge(false)}>Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <footer>
-                        <p>© 2026 Visitor Pass Management System | Assignment 9</p>
+                        <p>© 2026 VISITRA - Smart Visitor Management & Digital Pass System | Assignment 9</p>
                     </footer>
                 </div>
             );

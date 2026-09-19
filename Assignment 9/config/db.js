@@ -1,12 +1,22 @@
 /**
- * Assignment 9: MongoDB Database Connection
+ * VISITRA - Database Connection Configuration (Mongoose ODM)
  */
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/visitor_pass_db";
+const mongoose = require('mongoose');
 
-function connectDB() {
-    console.log(`[DATABASE] Connecting to MongoDB Atlas / Local at: ${MONGO_URI}`);
-    console.log(`[DATABASE] Collections: Users, Visitors, Passes, CheckLogs initialized.`);
-}
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/visitra_db";
 
-module.exports = { connectDB, MONGO_URI };
+const connectDB = async () => {
+    try {
+        mongoose.set('strictQuery', false);
+        const conn = await mongoose.connect(MONGO_URI, {
+            serverSelectionTimeoutMS: 3000
+        });
+        console.log(`[DATABASE] MongoDB Connected: ${conn.connection.host}`);
+    } catch (err) {
+        console.log(`[DATABASE] MongoDB Connection Status: Offline / Local Memory Storage Active (${err.message})`);
+        console.log(`[DATABASE] Target URI: ${MONGO_URI}`);
+    }
+};
+
+module.exports = connectDB;

@@ -1,21 +1,31 @@
 {
-  "name": "assignment-9-visitor-pass-mern",
+  "name": "visitra-smart-visitor-pass-system",
   "version": "1.0.0",
-  "description": "Assignment 9: Visitor Pass Management System (MERN Stack with JWT, QR Code, and Role-Based Access Control)",
+  "description": "VISITRA - Production-Style Smart Visitor Management & Digital Pass System (MERN Stack)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.1",
+    "qrcode": "^1.5.3"
+  },
   "keywords": [
-    "mern-stack",
-    "nodejs",
-    "express",
-    "mongodb",
-    "react",
-    "visitor-management",
+    "mern",
+    "visitor-pass-system",
+    "visitra",
+    "rbac",
+    "jwt",
     "qr-code",
-    "jwt-auth"
+    "express",
+    "mongoose"
   ],
   "author": "Madhusmita",
   "license": "ISC"
